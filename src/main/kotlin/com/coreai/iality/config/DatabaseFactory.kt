@@ -1,6 +1,9 @@
 package com.coreai.iality.config
 
+import com.coreai.iality.database.UsersTable
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
 
@@ -19,11 +22,16 @@ object DatabaseFactory {
             password = password
         )
 
+        transaction {
+            SchemaUtils.createMissingTablesAndColumns(UsersTable)
+        }
+
         println("===================================")
         println("Base de datos conectada")
         println("Host: $host")
         println("Puerto: $port")
         println("Base: $database")
+        println("Tabla usuarios verificada")
         println("===================================")
     }
 }
