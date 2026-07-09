@@ -1,5 +1,6 @@
 package com.coreai.iality.config
 
+import com.coreai.iality.database.RemindersTable
 import com.coreai.iality.database.UsersTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -9,29 +10,56 @@ object DatabaseFactory {
 
     fun init() {
 
-        val host = System.getenv("PGHOST") ?: "localhost"
-        val port = System.getenv("PGPORT") ?: "5432"
-        val database = System.getenv("PGDATABASE") ?: "iality"
-        val user = System.getenv("PGUSER") ?: "postgres"
-        val password = System.getenv("PGPASSWORD") ?: "1234"
+        val host =
+            System.getenv("PGHOST")
+                ?: "localhost"
+
+        val port =
+            System.getenv("PGPORT")
+                ?: "5432"
+
+        val database =
+            System.getenv("PGDATABASE")
+                ?: "iality"
+
+        val user =
+            System.getenv("PGUSER")
+                ?: "postgres"
+
+        val password =
+            System.getenv("PGPASSWORD")
+                ?: "1234"
 
         Database.connect(
-            url = "jdbc:postgresql://$host:$port/$database",
-            driver = "org.postgresql.Driver",
+
+            url =
+                "jdbc:postgresql://$host:$port/$database",
+
+            driver =
+                "org.postgresql.Driver",
+
             user = user,
+
             password = password
         )
 
         transaction {
-            SchemaUtils.createMissingTablesAndColumns(UsersTable)
+
+            SchemaUtils
+                .createMissingTablesAndColumns(
+
+                    UsersTable,
+
+                    RemindersTable
+                )
         }
 
-        println("===================================")
-        println("Base de datos conectada")
-        println("Host: $host")
-        println("Puerto: $port")
-        println("Base: $database")
-        println("Tabla usuarios verificada")
-        println("===================================")
+        println(
+            "Base de datos conectada"
+        )
+
+        println(
+            "Tablas usuarios y recordatorios verificadas"
+        )
     }
 }
