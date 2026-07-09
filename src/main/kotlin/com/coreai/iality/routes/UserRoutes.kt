@@ -91,4 +91,26 @@ fun Route.userRoutes() {
         }
 
     }
+    
+    post("/sos") {
+        try {
+
+            val datosAlerta = call.receive<Map<String, String>>()
+            val numeroContacto = datosAlerta["numero"] ?: "Sin número"
+
+
+            call.respond(
+                HttpStatusCode.OK,
+                ApiResponse(
+                    id = 0,
+                    mensaje = "Alerta de emergencia SOS recibida en el servidor para el contacto: $numeroContacto"
+                )
+            )
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Error al procesar la alerta SOS: ${e.localizedMessage}"
+            )
+        }
+    }
 }
