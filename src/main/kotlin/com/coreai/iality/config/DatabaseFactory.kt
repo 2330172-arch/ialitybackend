@@ -6,16 +6,24 @@ object DatabaseFactory {
 
     fun init() {
 
-        println("===== INIT DATABASE =====")
+        val host = System.getenv("PGHOST") ?: "localhost"
+        val port = System.getenv("PGPORT") ?: "5432"
+        val database = System.getenv("PGDATABASE") ?: "iality"
+        val user = System.getenv("PGUSER") ?: "postgres"
+        val password = System.getenv("PGPASSWORD") ?: "1234"
 
         Database.connect(
-            url = "jdbc:postgresql://localhost:5432/iality",
+            url = "jdbc:postgresql://$host:$port/$database",
             driver = "org.postgresql.Driver",
-            user = "postgres",
-            password = "1234"
+            user = user,
+            password = password
         )
 
-        println("===== DATABASE CONECTADA =====")
+        println("===================================")
+        println("Base de datos conectada")
+        println("Host: $host")
+        println("Puerto: $port")
+        println("Base: $database")
+        println("===================================")
     }
-
 }
