@@ -3,6 +3,7 @@ package com.coreai.iality
 import com.coreai.iality.config.DatabaseFactory
 import com.coreai.iality.routes.reminderRoutes
 import com.coreai.iality.routes.userRoutes
+import com.coreai.iality.routes.emergencyContactRoutes
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -47,6 +48,7 @@ fun Application.module() {
         userRoutes()
 
         reminderRoutes()
+        emergencyContactRoutes()
 
         get("/") {
 

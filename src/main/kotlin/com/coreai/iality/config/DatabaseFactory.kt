@@ -5,6 +5,7 @@ import com.coreai.iality.database.UsersTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+import com.coreai.iality.database.EmergencyContactsTable
 
 object DatabaseFactory {
 
@@ -47,10 +48,9 @@ object DatabaseFactory {
 
             SchemaUtils
                 .createMissingTablesAndColumns(
-
                     UsersTable,
-
-                    RemindersTable
+                    RemindersTable,
+                    EmergencyContactsTable
                 )
         }
 

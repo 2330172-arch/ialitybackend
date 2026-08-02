@@ -56,6 +56,7 @@ class UserRepository {
                 }
                 .map {
                     User(
+                        id = it[UsersTable.id],
                         nombre = it[UsersTable.nombre],
                         correo = it[UsersTable.correo],
                         password = it[UsersTable.password],
@@ -75,6 +76,7 @@ class UserRepository {
                 .where { UsersTable.correo eq correo }
                 .map {
                     User(
+                        id = it[UsersTable.id],
                         nombre = it[UsersTable.nombre],
                         correo = it[UsersTable.correo],
                         password = it[UsersTable.password],
