@@ -29,7 +29,7 @@ dependencies {
     implementation(ktorLibs.server.cors)
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.statusPages)
-
+    implementation("org.eclipse.angus:jakarta.mail:2.0.4")
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)

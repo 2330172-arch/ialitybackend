@@ -10,6 +10,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import com.coreai.iality.routes.passwordResetRoutes
 
 fun main() {
 
@@ -47,6 +48,8 @@ fun Application.module() {
         userRoutes()
 
         reminderRoutes()
+
+        passwordResetRoutes()
 
         get("/") {
 
