@@ -1,167 +1,177 @@
 package com.coreai.iality.routes
 
-import com.coreai.iality.models.ApiResponse
+import com.coreai.iality.models.PasswordResetConfirmRequest
 import com.coreai.iality.models.PasswordResetRequest
-import com.coreai.iality.models.ResetPasswordRequest
-import com.coreai.iality.models.VerifyResetCodeRequest
-import com.coreai.iality.repository.PasswordResetRepository
-import com.coreai.iality.services.EmailService
+import com.coreai.iality.models.PasswordResetResponse
+import com.coreai.iality.service.PasswordResetService
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import kotlin.random.Random
+import io.ktor.server.routing.route
 
 fun Route.passwordResetRoutes() {
 
-    val repository = PasswordResetRepository()
-    val emailService = EmailService()
+    val passwordResetService =
+        PasswordResetService()
 
-    post("/password-reset/request") {
+    route("/password-reset") {
 
-        val request = call.receive<PasswordResetRequest>()
+        post("/request") {
 
-        val correo = request.correo.trim().lowercase()
+            val request =
+                call.receive<PasswordResetRequest>()
 
-        if (correo.isBlank()) {
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "El correo es obligatorio"
-                )
-            )
-            return@post
-        }
+            val correo =
+                request.correo.trim().lowercase()
 
-        val codigo = Random.nextInt(
-            from = 100000,
-            until = 1000000
-        ).toString()
-
-        val expiracion =
-            System.currentTimeMillis() + (10 * 60 * 1000)
-
-        try {
-
-            val creado = repository.crearCodigo(
-                correo = correo,
-                codigo = codigo,
-                expiracion = expiracion
-            )
-
-            if (!creado) {
+            if (correo.isBlank()) {
 
                 call.respond(
-                    HttpStatusCode.OK,
-                    ApiResponse(
-                        id = 0,
-                        mensaje = "Si el correo está registrado, recibirás un código."
+                    HttpStatusCode.BadRequest,
+                    PasswordResetResponse(
+                        "Ingresa un correo válido."
                     )
                 )
 
                 return@post
             }
 
-            emailService.enviarCodigo(
-                correoDestino = correo,
-                codigo = codigo
-            )
+            try {
+
+                val codigo =
+                    passwordResetService.generarCodigo(
+                        correo
+                    )
+
+                passwordResetService.enviarCorreo(
+                    correo = correo,
+                    codigo = codigo
+                )
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    PasswordResetResponse(
+                        "Código enviado correctamente a tu correo."
+                    )
+                )
+
+            } catch (e: IllegalArgumentException) {
+
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    PasswordResetResponse(
+                        e.message ?: "Correo no registrado."
+                    )
+                )
+
+            } catch (e: Exception) {
+
+                println(
+                    "ERROR ENVIANDO CORREO: ${e.message}"
+                )
+
+                e.printStackTrace()
+
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    PasswordResetResponse(
+                        "No fue posible enviar el código."
+                    )
+                )
+            }
+        }
+
+        post("/confirm") {
+
+            val request =
+                call.receive<PasswordResetConfirmRequest>()
+
+            val correo =
+                request.correo.trim().lowercase()
+
+            val codigo =
+                request.codigo.trim()
+
+            if (correo.isBlank()) {
+
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    PasswordResetResponse(
+                        "Correo requerido."
+                    )
+                )
+
+                return@post
+            }
+
+            if (codigo.isBlank()) {
+
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    PasswordResetResponse(
+                        "Código requerido."
+                    )
+                )
+
+                return@post
+            }
+
+            if (request.nuevaPassword.length < 6) {
+
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    PasswordResetResponse(
+                        "La contraseña debe tener al menos 6 caracteres."
+                    )
+                )
+
+                return@post
+            }
+
+            val codigoCorrecto =
+                passwordResetService.verificarCodigo(
+                    correo = correo,
+                    codigo = codigo
+                )
+
+            if (!codigoCorrecto) {
+
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    PasswordResetResponse(
+                        "Código incorrecto o expirado."
+                    )
+                )
+
+                return@post
+            }
+
+            val actualizado =
+                passwordResetService.cambiarPassword(
+                    correo = correo,
+                    codigo = codigo,
+                    nuevaPassword = request.nuevaPassword
+                )
+
+            if (!actualizado) {
+
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    PasswordResetResponse(
+                        "No fue posible cambiar la contraseña."
+                    )
+                )
+
+                return@post
+            }
 
             call.respond(
                 HttpStatusCode.OK,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "Si el correo está registrado, recibirás un código."
-                )
-            )
-
-        } catch (e: Exception) {
-
-            println("Error enviando código: ${e.message}")
-
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "No fue posible enviar el código"
-                )
-            )
-        }
-    }
-
-    post("/password-reset/verify") {
-
-        val request = call.receive<VerifyResetCodeRequest>()
-
-        val valido = repository.verificarCodigo(
-            correo = request.correo.trim().lowercase(),
-            codigo = request.codigo.trim()
-        )
-
-        if (valido) {
-
-            call.respond(
-                HttpStatusCode.OK,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "Código válido"
-                )
-            )
-
-        } else {
-
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "Código incorrecto o expirado"
-                )
-            )
-        }
-    }
-
-    post("/password-reset/confirm") {
-
-        val request = call.receive<ResetPasswordRequest>()
-
-        if (request.nuevaPassword.length < 6) {
-
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "La contraseña debe tener al menos 6 caracteres"
-                )
-            )
-
-            return@post
-        }
-
-        val cambiado = repository.cambiarPassword(
-            correo = request.correo.trim().lowercase(),
-            codigo = request.codigo.trim(),
-            nuevaPassword = request.nuevaPassword
-        )
-
-        if (cambiado) {
-
-            call.respond(
-                HttpStatusCode.OK,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "Contraseña actualizada correctamente"
-                )
-            )
-
-        } else {
-
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ApiResponse(
-                    id = 0,
-                    mensaje = "Código incorrecto, expirado o ya utilizado"
+                PasswordResetResponse(
+                    "Contraseña actualizada correctamente."
                 )
             )
         }

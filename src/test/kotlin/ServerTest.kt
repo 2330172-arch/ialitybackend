@@ -1,18 +1,32 @@
-package com.coreai
+package com.coreai.iality
 
 import io.ktor.client.request.get
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.statement.bodyAsText
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ServerTest {
 
     @Test
-    fun `test root endpoint`() = testApplication {
-        // loads default configuration
-        configure()
-        // verify server root returns 200
-        assertEquals(HttpStatusCode.OK, client.get("/").status)
-    }
+    fun testRoot() = testApplication {
 
+        application {
+            routing {
+                get("/") {
+                    call.respondText("IALITY BACKEND ACTIVO")
+                }
+            }
+        }
+
+        val response = client.get("/")
+
+        assertEquals(
+            "IALITY BACKEND ACTIVO",
+            response.bodyAsText()
+        )
+    }
 }

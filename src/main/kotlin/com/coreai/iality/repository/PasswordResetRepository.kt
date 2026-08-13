@@ -2,8 +2,9 @@ package com.coreai.iality.repository
 
 import com.coreai.iality.database.PasswordResetTable
 import com.coreai.iality.database.UsersTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class PasswordResetRepository {
@@ -18,22 +19,31 @@ class PasswordResetRepository {
 
             val usuario = UsersTable
                 .selectAll()
-                .where {
-                    UsersTable.correo eq correo
+                .firstOrNull { fila ->
+                    fila[UsersTable.correo] == correo
                 }
-                .singleOrNull()
 
             if (usuario == null) {
                 false
             } else {
 
-                PasswordResetTable.update(
-                    {
-                        PasswordResetTable.correo eq correo
+                PasswordResetTable
+                    .selectAll()
+                    .filter { fila ->
+                        fila[PasswordResetTable.correo] == correo
                     }
-                ) {
-                    it[PasswordResetTable.usado] = true
-                }
+                    .forEach { fila ->
+
+                        val id = fila[PasswordResetTable.id]
+
+                        PasswordResetTable.update(
+                            {
+                                PasswordResetTable.id eq id
+                            }
+                        ) {
+                            it[PasswordResetTable.usado] = true
+                        }
+                    }
 
                 PasswordResetTable.insert {
 
@@ -69,13 +79,12 @@ class PasswordResetRepository {
 
             PasswordResetTable
                 .selectAll()
-                .where {
-                    (PasswordResetTable.correo eq correo) and
-                            (PasswordResetTable.codigo eq codigo) and
-                            (PasswordResetTable.usado eq false)
-                }
-                .any {
-                    it[PasswordResetTable.expiresAt] > ahora
+                .any { fila ->
+
+                    fila[PasswordResetTable.correo] == correo &&
+                            fila[PasswordResetTable.codigo] == codigo &&
+                            !fila[PasswordResetTable.usado] &&
+                            fila[PasswordResetTable.expiresAt] > ahora
                 }
         }
     }
@@ -93,13 +102,12 @@ class PasswordResetRepository {
             val codigoValido =
                 PasswordResetTable
                     .selectAll()
-                    .where {
-                        (PasswordResetTable.correo eq correo) and
-                                (PasswordResetTable.codigo eq codigo) and
-                                (PasswordResetTable.usado eq false)
-                    }
-                    .any {
-                        it[PasswordResetTable.expiresAt] > ahora
+                    .any { fila ->
+
+                        fila[PasswordResetTable.correo] == correo &&
+                                fila[PasswordResetTable.codigo] == codigo &&
+                                !fila[PasswordResetTable.usado] &&
+                                fila[PasswordResetTable.expiresAt] > ahora
                     }
 
             if (!codigoValido) {
@@ -112,21 +120,29 @@ class PasswordResetRepository {
                             UsersTable.correo eq correo
                         }
                     ) {
-                        it[UsersTable.password] =
-                            nuevaPassword
+                        it[UsersTable.password] = nuevaPassword
                     } > 0
 
                 if (actualizado) {
 
-                    PasswordResetTable.update(
-                        {
-                            (PasswordResetTable.correo eq correo) and
-                                    (PasswordResetTable.codigo eq codigo)
+                    PasswordResetTable
+                        .selectAll()
+                        .filter { fila ->
+                            fila[PasswordResetTable.correo] == correo &&
+                                    fila[PasswordResetTable.codigo] == codigo
                         }
-                    ) {
-                        it[PasswordResetTable.usado] =
-                            true
-                    }
+                        .forEach { fila ->
+
+                            val id = fila[PasswordResetTable.id]
+
+                            PasswordResetTable.update(
+                                {
+                                    PasswordResetTable.id eq id
+                                }
+                            ) {
+                                it[PasswordResetTable.usado] = true
+                            }
+                        }
 
                     true
 
