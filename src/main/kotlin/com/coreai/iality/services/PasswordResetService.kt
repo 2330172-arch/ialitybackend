@@ -1,19 +1,31 @@
 package com.coreai.iality.service
 
 import com.coreai.iality.repository.PasswordResetRepository
-import jakarta.mail.Authenticator
-import jakarta.mail.Message
-import jakarta.mail.PasswordAuthentication
-import jakarta.mail.Session
-import jakarta.mail.Transport
-import jakarta.mail.internet.InternetAddress
-import jakarta.mail.internet.MimeMessage
+import io.ktor.client.HttpClient
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.request.header
+import io.ktor.http.ContentType
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
 import kotlin.random.Random
-import java.util.Properties
+import kotlinx.serialization.json.Json
 
 class PasswordResetService(
     private val repository: PasswordResetRepository = PasswordResetRepository()
 ) {
+
+    private val resendApiKey = System.getenv("RESEND_API_KEY")
+        ?: throw IllegalStateException("RESEND_API_KEY no configurado en Railway")
+
+    private val httpClient = HttpClient {
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+            })
+        }
+    }
 
     fun generarCodigo(correo: String): String {
 
@@ -64,122 +76,60 @@ class PasswordResetService(
         )
     }
 
-    fun enviarCorreo(
+    suspend fun enviarCorreo(
         correo: String,
         codigo: String
     ) {
 
-        val smtpHost =
-            System.getenv("SMTP_HOST")
-                ?: "smtp.gmail.com"
+        println("[RESEND] Enviando código a: $correo")
 
-        val smtpPort =
-            (System.getenv("SMTP_PORT") ?: "587").toInt()
-
-        val smtpUser =
-            System.getenv("SMTP_USER")
-                ?: throw IllegalStateException(
-                    "SMTP_USER no configurado en Railway"
-                )
-
-        val smtpPassword =
-            System.getenv("SMTP_PASSWORD")
-                ?: throw IllegalStateException(
-                    "SMTP_PASSWORD no configurado en Railway"
-                )
-
-        val smtpFrom =
-            System.getenv("SMTP_FROM")
-                ?: smtpUser
-
-        println("[IALITY SMTP] Host: $smtpHost, Puerto: $smtpPort, Usuario: $smtpUser")
-
-        val properties = Properties()
-
-        properties["mail.smtp.auth"] = "true"
-        properties["mail.smtp.starttls.enable"] = "true"
-        properties["mail.smtp.host"] = smtpHost
-        properties["mail.smtp.port"] = smtpPort.toString()
-
-        properties["mail.smtp.connectiontimeout"] = "10000"
-        properties["mail.smtp.timeout"] = "10000"
-        properties["mail.smtp.writetimeout"] = "10000"
-
-        if (smtpPort == 465) {
-            properties["mail.smtp.socketFactory.port"] = "465"
-            properties["mail.smtp.socketFactory.class"] = "javax.net.ssl.SSLSocketFactory"
-            properties["mail.smtp.socketFactory.fallback"] = "false"
-        } else {
-            properties["mail.smtp.starttls.enable"] = "true"
-        }
-        properties["mail.smtp.port"] = smtpPort.toString()
         try {
 
-            val session =
-                Session.getInstance(
-                    properties,
-                    object : Authenticator() {
-
-                        override fun getPasswordAuthentication():
-                                PasswordAuthentication {
-
-                            return PasswordAuthentication(
-                                smtpUser,
-                                smtpPassword
-                            )
-                        }
-                    }
-                )
-
-            session.debug = true
-
-            val message =
-                MimeMessage(session)
-
-            message.setFrom(
-                InternetAddress(smtpFrom)
-            )
-
-            message.setRecipients(
-                Message.RecipientType.TO,
-                InternetAddress.parse(correo)
-            )
-
-            message.subject =
-                "Código de recuperación - IALITY"
-
-            message.setText(
-                """
-                Hola,
-
-                Tu código para recuperar tu contraseña de IALITY es:
-
-                $codigo
-
-                Este código tiene una duración de 10 minutos.
-
-                Si tú no solicitaste este cambio, ignora este correo.
-
-                IALITY
+            val requestBody = ResendEmailRequest(
+                from = "onboarding@resend.dev",
+                to = correo,
+                subject = "Código de recuperación - IALITY",
+                html = """
+                    <html>
+                    <body style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h2>Recuperación de contraseña - IALITY</h2>
+                        <p>Hola,</p>
+                        <p>Tu código para recuperar tu contraseña de IALITY es:</p>
+                        <h1 style="color: #007AFF; font-size: 36px; letter-spacing: 5px;">$codigo</h1>
+                        <p>Este código tiene una duración de 10 minutos.</p>
+                        <p>Si tú no solicitaste este cambio, ignora este correo.</p>
+                        <p>IALITY</p>
+                    </body>
+                    </html>
                 """.trimIndent()
             )
 
-            println("[IALITY SMTP] Enviando a: $correo")
+            val response = httpClient.post("https://api.resend.com/emails") {
+                header("Authorization", "Bearer $resendApiKey")
+                header("Content-Type", "application/json")
+                setBody(requestBody)
+            }
 
-            Transport.send(message)
-
-            println("[IALITY SMTP] ✅ Correo enviado correctamente a $correo")
+            println("[RESEND] ✅ Correo enviado correctamente a $correo")
 
         } catch (e: Exception) {
 
-            println("[IALITY SMTP] ❌ ERROR: ${e.message}")
+            println("[RESEND] ❌ ERROR: ${e.message}")
 
             e.printStackTrace()
 
             throw RuntimeException(
-                "Error enviando correo SMTP: ${e.message}",
+                "Error enviando correo con Resend: ${e.message}",
                 e
             )
         }
     }
 }
+
+@Serializable
+data class ResendEmailRequest(
+    val from: String,
+    val to: String,
+    val subject: String,
+    val html: String
+)

@@ -41,4 +41,8 @@ dependencies {
 
     testImplementation("io.ktor:ktor-server-test-host-jvm:3.0.3")
     testImplementation(kotlin("test"))
+    implementation("io.ktor:ktor-client-core-jvm:3.0.3")
+    implementation("io.ktor:ktor-client-cio-jvm:3.0.3")
+    implementation("io.ktor:ktor-client-content-negotiation-jvm:3.0.3")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:3.0.3")
 }
