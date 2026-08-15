@@ -105,8 +105,14 @@ class PasswordResetService(
         properties["mail.smtp.timeout"] = "10000"
         properties["mail.smtp.writetimeout"] = "10000"
 
-        properties["mail.smtp.starttls.required"] = "true"
-
+        if (smtpPort == 465) {
+            properties["mail.smtp.socketFactory.port"] = "465"
+            properties["mail.smtp.socketFactory.class"] = "javax.net.ssl.SSLSocketFactory"
+            properties["mail.smtp.socketFactory.fallback"] = "false"
+        } else {
+            properties["mail.smtp.starttls.enable"] = "true"
+        }
+        properties["mail.smtp.port"] = smtpPort.toString()
         try {
 
             val session =
