@@ -35,6 +35,8 @@ class PasswordResetService(
             )
         }
 
+        println("[IALITY] Código generado: $codigo para $correo")
+
         return codigo
     }
 
@@ -72,79 +74,106 @@ class PasswordResetService(
                 ?: "smtp.gmail.com"
 
         val smtpPort =
-            System.getenv("SMTP_PORT")
-                ?: "587"
+            (System.getenv("SMTP_PORT") ?: "587").toInt()
 
         val smtpUser =
             System.getenv("SMTP_USER")
                 ?: throw IllegalStateException(
-                    "SMTP_USER no configurado"
+                    "SMTP_USER no configurado en Railway"
                 )
 
         val smtpPassword =
             System.getenv("SMTP_PASSWORD")
                 ?: throw IllegalStateException(
-                    "SMTP_PASSWORD no configurado"
+                    "SMTP_PASSWORD no configurado en Railway"
                 )
 
         val smtpFrom =
             System.getenv("SMTP_FROM")
                 ?: smtpUser
 
+        println("[IALITY SMTP] Host: $smtpHost, Puerto: $smtpPort, Usuario: $smtpUser")
+
         val properties = Properties()
 
         properties["mail.smtp.auth"] = "true"
         properties["mail.smtp.starttls.enable"] = "true"
         properties["mail.smtp.host"] = smtpHost
-        properties["mail.smtp.port"] = smtpPort
+        properties["mail.smtp.port"] = smtpPort.toString()
 
-        val session =
-            Session.getInstance(
-                properties,
-                object : Authenticator() {
+        properties["mail.smtp.connectiontimeout"] = "10000"
+        properties["mail.smtp.timeout"] = "10000"
+        properties["mail.smtp.writetimeout"] = "10000"
 
-                    override fun getPasswordAuthentication():
-                            PasswordAuthentication {
+        properties["mail.smtp.starttls.required"] = "true"
 
-                        return PasswordAuthentication(
-                            smtpUser,
-                            smtpPassword
-                        )
+        try {
+
+            val session =
+                Session.getInstance(
+                    properties,
+                    object : Authenticator() {
+
+                        override fun getPasswordAuthentication():
+                                PasswordAuthentication {
+
+                            return PasswordAuthentication(
+                                smtpUser,
+                                smtpPassword
+                            )
+                        }
                     }
-                }
+                )
+
+            session.debug = true
+
+            val message =
+                MimeMessage(session)
+
+            message.setFrom(
+                InternetAddress(smtpFrom)
             )
 
-        val message =
-            MimeMessage(session)
+            message.setRecipients(
+                Message.RecipientType.TO,
+                InternetAddress.parse(correo)
+            )
 
-        message.setFrom(
-            InternetAddress(smtpFrom)
-        )
+            message.subject =
+                "Código de recuperación - IALITY"
 
-        message.setRecipients(
-            Message.RecipientType.TO,
-            InternetAddress.parse(correo)
-        )
+            message.setText(
+                """
+                Hola,
 
-        message.subject =
-            "Código de recuperación - IALITY"
+                Tu código para recuperar tu contraseña de IALITY es:
 
-        message.setText(
-            """
-            Hola,
+                $codigo
 
-            Tu código para recuperar tu contraseña de IALITY es:
+                Este código tiene una duración de 10 minutos.
 
-            $codigo
+                Si tú no solicitaste este cambio, ignora este correo.
 
-            Este código tiene una duración de 10 minutos.
+                IALITY
+                """.trimIndent()
+            )
 
-            Si tú no solicitaste este cambio, ignora este correo.
+            println("[IALITY SMTP] Enviando a: $correo")
 
-            IALITY
-            """.trimIndent()
-        )
+            Transport.send(message)
 
-        Transport.send(message)
+            println("[IALITY SMTP] ✅ Correo enviado correctamente a $correo")
+
+        } catch (e: Exception) {
+
+            println("[IALITY SMTP] ❌ ERROR: ${e.message}")
+
+            e.printStackTrace()
+
+            throw RuntimeException(
+                "Error enviando correo SMTP: ${e.message}",
+                e
+            )
+        }
     }
 }

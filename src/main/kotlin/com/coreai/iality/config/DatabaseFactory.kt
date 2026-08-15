@@ -1,5 +1,6 @@
 package com.coreai.iality.config
 
+import com.coreai.iality.database.PasswordResetTable
 import com.coreai.iality.database.RemindersTable
 import com.coreai.iality.database.UsersTable
 import org.jetbrains.exposed.sql.Database
@@ -50,7 +51,9 @@ object DatabaseFactory {
 
                     UsersTable,
 
-                    RemindersTable
+                    RemindersTable,
+
+                    PasswordResetTable
                 )
         }
 
@@ -59,7 +62,7 @@ object DatabaseFactory {
         )
 
         println(
-            "Tablas usuarios y recordatorios verificadas"
+            "Tablas usuarios, recordatorios y recuperación verificadas"
         )
     }
 }
