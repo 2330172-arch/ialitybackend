@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.coreai.iality.ServerTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-08-15T18:51:57.187Z" hostname="LENOVO5Ç" time="1.951">
+<testsuite name="com.coreai.iality.ServerTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-08-15T18:59:06.938Z" hostname="LENOVO5Ç" time="2.125">
   <properties/>
-  <testcase name="testRoot" classname="com.coreai.iality.ServerTest" time="1.934"/>
-  <system-out><![CDATA[2026-08-15 12:51:58.813 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active.
-2026-08-15 12:51:58.879 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - Application started in 0.093 seconds.
-2026-08-15 12:51:58.885 [DefaultDispatcher-worker-1 @coroutine#4] INFO  io.ktor.test - Responding at http://localhost:80
-2026-08-15 12:51:58.886 [DefaultDispatcher-worker-1 @coroutine#4] INFO  io.ktor.test - Responding at https://localhost:443
+  <testcase name="testRoot" classname="com.coreai.iality.ServerTest" time="2.115"/>
+  <system-out><![CDATA[2026-08-15 12:59:08.748 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active.
+2026-08-15 12:59:08.808 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - Application started in 0.089 seconds.
+2026-08-15 12:59:08.812 [DefaultDispatcher-worker-1 @coroutine#4] INFO  io.ktor.test - Responding at http://localhost:80
+2026-08-15 12:59:08.813 [DefaultDispatcher-worker-1 @coroutine#4] INFO  io.ktor.test - Responding at https://localhost:443
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
