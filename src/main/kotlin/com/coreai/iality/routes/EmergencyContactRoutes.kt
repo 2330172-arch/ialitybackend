@@ -12,26 +12,38 @@ fun Route.emergencyContactRoutes() {
 
     val repository = EmergencyContactRepository()
 
-    // Guardar contacto de emergencia
+    // ═════════════════════════════════════
+    // CREAR CONTACTO
+    // ═════════════════════════════════════
+
     post("/emergency-contact") {
 
-        val request = call.receive<EmergencyContactRequest>()
+        val request =
+            call.receive<EmergencyContactRequest>()
 
-        val id = repository.create(request)
+        val id =
+            repository.create(request)
 
         call.respond(
             HttpStatusCode.Created,
             ApiResponse(
                 id = id,
-                mensaje = "Contacto de emergencia guardado correctamente"
+                mensaje =
+                    "Contacto de emergencia guardado correctamente"
             )
         )
     }
 
-    // Obtener contacto de emergencia de un usuario
+
+    // ═════════════════════════════════════
+    // OBTENER CONTACTO
+    // ═════════════════════════════════════
+
     get("/emergency-contact/{userId}") {
 
-        val userId = call.parameters["userId"]?.toIntOrNull()
+        val userId =
+            call.parameters["userId"]
+                ?.toIntOrNull()
 
         if (userId == null) {
 
@@ -43,7 +55,8 @@ fun Route.emergencyContactRoutes() {
             return@get
         }
 
-        val contact = repository.getByUserId(userId)
+        val contact =
+            repository.getByUserId(userId)
 
         if (contact == null) {
 
@@ -58,10 +71,66 @@ fun Route.emergencyContactRoutes() {
         }
     }
 
-    // Eliminar contacto
+
+    // ═════════════════════════════════════
+    // ACTUALIZAR CONTACTO
+    // ═════════════════════════════════════
+
+    put("/emergency-contact/{userId}") {
+
+        val userId =
+            call.parameters["userId"]
+                ?.toIntOrNull()
+
+        if (userId == null) {
+
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "ID de usuario inválido"
+            )
+
+            return@put
+        }
+
+        val request =
+            call.receive<EmergencyContactRequest>()
+
+        val actualizado =
+            repository.updateByUserId(
+                userId,
+                request
+            )
+
+        if (actualizado) {
+
+            call.respond(
+                HttpStatusCode.OK,
+                ApiResponse(
+                    id = userId,
+                    mensaje =
+                        "Contacto actualizado correctamente"
+                )
+            )
+
+        } else {
+
+            call.respond(
+                HttpStatusCode.NotFound,
+                "Contacto de emergencia no encontrado"
+            )
+        }
+    }
+
+
+    // ═════════════════════════════════════
+    // ELIMINAR CONTACTO
+    // ═════════════════════════════════════
+
     delete("/emergency-contact/{userId}") {
 
-        val userId = call.parameters["userId"]?.toIntOrNull()
+        val userId =
+            call.parameters["userId"]
+                ?.toIntOrNull()
 
         if (userId == null) {
 
@@ -73,7 +142,8 @@ fun Route.emergencyContactRoutes() {
             return@delete
         }
 
-        val eliminado = repository.deleteByUserId(userId)
+        val eliminado =
+            repository.deleteByUserId(userId)
 
         if (eliminado) {
 

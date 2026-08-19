@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.update
 
 class EmergencyContactRepository {
 
@@ -44,6 +45,26 @@ class EmergencyContactRepository {
                     )
                 }
                 .singleOrNull()
+        }
+    }
+
+    fun updateByUserId(
+        userId: Int,
+        contact: EmergencyContactRequest
+    ): Boolean {
+
+        return transaction {
+
+            EmergencyContactsTable.update(
+                {
+                    EmergencyContactsTable.userId eq userId
+                }
+            ) {
+
+                it[nombre] = contact.nombre
+                it[telefono] = contact.telefono
+
+            } > 0
         }
     }
 
