@@ -28,20 +28,37 @@ class UserRepository {
         }
 
     }
-    fun update(correo: String, data: UpdateUserRequest): Boolean {
+    fun update(correoActual: String, data: UpdateUserRequest): Boolean {
 
         return transaction {
 
-            UsersTable.update({ UsersTable.correo eq correo }) {
+            // Verificar que el nuevo correo no pertenezca
+            // a otro usuario
+            val correoExiste = UsersTable
+                .selectAll()
+                .where {
+                    UsersTable.correo eq data.nuevoCorreo
+                }
+                .any {
+                    it[UsersTable.correo] != correoActual
+                }
+
+            if (correoExiste) {
+                return@transaction false
+            }
+
+            // Actualizar usuario
+            UsersTable.update(
+                { UsersTable.correo eq correoActual }
+            ) {
 
                 it[nombre] = data.nombre
+                it[correo] = data.nuevoCorreo
                 it[password] = data.password
                 it[foto] = data.foto
 
             } > 0
-
         }
-
     }
 
     fun login(correo: String, password: String): User? {

@@ -73,22 +73,28 @@ fun Route.userRoutes() {
     }
     put("/perfil") {
 
-        val request = call.receive<UpdateUserRequest>()
+        val request =
+            call.receive<UpdateUserRequest>()
 
-        val actualizado = repository.update(
-            request.correo,
-            request
-        )
+        val actualizado =
+            repository.update(
+                request.correoActual,
+                request
+            )
 
         if (actualizado) {
 
-            call.respond(HttpStatusCode.OK, "Perfil actualizado")
+            call.respond(
+                HttpStatusCode.OK,
+                "Perfil actualizado correctamente"
+            )
 
         } else {
 
-            call.respond(HttpStatusCode.NotFound, "Usuario no encontrado")
-
+            call.respond(
+                HttpStatusCode.Conflict,
+                "El nuevo correo ya está en uso o el usuario no existe"
+            )
         }
-
     }
 }
