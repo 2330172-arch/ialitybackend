@@ -2,15 +2,19 @@ package com.coreai.iality.repository
 
 import com.coreai.iality.database.UsersTable
 import com.coreai.iality.models.User
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.and
 import com.coreai.iality.models.UpdateUserRequest
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class UserRepository {
+
+    // =========================================
+    // CREAR USUARIO
+    // =========================================
 
     fun create(user: User): Int {
 
@@ -22,26 +26,34 @@ class UserRepository {
                 it[correo] = user.correo
                 it[password] = user.password
                 it[foto] = user.foto
+                it[palabraClave] = user.palabraClave
 
             } get UsersTable.id
-
         }
-
     }
-    fun update(correoActual: String, data: UpdateUserRequest): Boolean {
+
+    // =========================================
+    // ACTUALIZAR USUARIO
+    // =========================================
+
+    fun update(
+        correoActual: String,
+        data: UpdateUserRequest
+    ): Boolean {
 
         return transaction {
 
-            // Verificar que el nuevo correo no pertenezca
-            // a otro usuario
-            val correoExiste = UsersTable
-                .selectAll()
-                .where {
-                    UsersTable.correo eq data.nuevoCorreo
-                }
-                .any {
-                    it[UsersTable.correo] != correoActual
-                }
+            // Verificar si el nuevo correo
+            // pertenece a otro usuario
+            val correoExiste =
+                UsersTable
+                    .selectAll()
+                    .where {
+                        UsersTable.correo eq data.nuevoCorreo
+                    }
+                    .any {
+                        it[UsersTable.correo] != correoActual
+                    }
 
             if (correoExiste) {
                 return@transaction false
@@ -56,12 +68,20 @@ class UserRepository {
                 it[correo] = data.nuevoCorreo
                 it[password] = data.password
                 it[foto] = data.foto
+                it[palabraClave] = data.palabraClave
 
             } > 0
         }
     }
 
-    fun login(correo: String, password: String): User? {
+    // =========================================
+    // LOGIN
+    // =========================================
+
+    fun login(
+        correo: String,
+        password: String
+    ): User? {
 
         return transaction {
 
@@ -72,36 +92,47 @@ class UserRepository {
                             (UsersTable.password eq password)
                 }
                 .map {
+
                     User(
                         id = it[UsersTable.id],
                         nombre = it[UsersTable.nombre],
                         correo = it[UsersTable.correo],
                         password = it[UsersTable.password],
-                        foto = it[UsersTable.foto]
+                        foto = it[UsersTable.foto],
+                        palabraClave = it[UsersTable.palabraClave]
                     )
                 }
                 .singleOrNull()
         }
     }
 
-    fun getByCorreo(correo: String): User? {
+    // =========================================
+    // OBTENER PERFIL
+    // =========================================
+
+    fun getByCorreo(
+        correo: String
+    ): User? {
 
         return transaction {
 
             UsersTable
                 .selectAll()
-                .where { UsersTable.correo eq correo }
+                .where {
+                    UsersTable.correo eq correo
+                }
                 .map {
+
                     User(
                         id = it[UsersTable.id],
                         nombre = it[UsersTable.nombre],
                         correo = it[UsersTable.correo],
                         password = it[UsersTable.password],
-                        foto = it[UsersTable.foto]
+                        foto = it[UsersTable.foto],
+                        palabraClave = it[UsersTable.palabraClave]
                     )
                 }
                 .singleOrNull()
         }
     }
-
 }

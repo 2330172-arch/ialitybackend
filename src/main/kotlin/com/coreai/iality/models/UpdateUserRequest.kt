@@ -8,5 +8,6 @@ data class UpdateUserRequest(
     val nuevoCorreo: String,
     val nombre: String,
     val password: String,
-    val foto: String? = null
+    val foto: String? = null,
+    val palabraClave: String = "halo"
 )

@@ -4,15 +4,40 @@ import org.jetbrains.exposed.sql.Table
 
 object UsersTable : Table("usuarios") {
 
-    val id = integer("id").autoIncrement()
+    val id =
+        integer("id")
+            .autoIncrement()
 
-    val nombre = varchar("nombre", 100)
+    val nombre =
+        varchar(
+            "nombre",
+            100
+        )
 
-    val correo = varchar("correo", 150).uniqueIndex()
+    val correo =
+        varchar(
+            "correo",
+            150
+        ).uniqueIndex()
 
-    val password = varchar("password", 255)
+    val password =
+        varchar(
+            "password",
+            255
+        )
 
-    val foto = varchar("foto", 255).nullable()
+    val foto =
+        varchar(
+            "foto",
+            255
+        ).nullable()
 
-    override val primaryKey = PrimaryKey(id)
+    val palabraClave =
+        varchar(
+            "palabraClave",
+            100
+        ).default("halo")
+
+    override val primaryKey =
+        PrimaryKey(id)
 }
