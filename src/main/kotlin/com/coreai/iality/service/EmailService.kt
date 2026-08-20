@@ -52,7 +52,7 @@ class EmailService {
 
             setBody(
                 ResendEmailRequest(
-                    from = "IALITY <onboarding@resend.dev>",
+                    from = "IALITY <no-reply@coreia.sipropec.com>",
                     to = listOf(correo),
                     subject = "Código para recuperar tu contraseña",
                     html = """
