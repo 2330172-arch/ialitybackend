@@ -25,6 +25,8 @@ class EmailService {
     private val client =
         HttpClient(CIO) {
 
+            expectSuccess = true
+
             install(ContentNegotiation) {
                 json()
             }
