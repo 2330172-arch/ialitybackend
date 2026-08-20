@@ -135,4 +135,22 @@ class UserRepository {
                 .singleOrNull()
         }
     }
+
+    fun cambiarPassword(
+        correo: String,
+        nuevaPassword: String
+    ): Boolean {
+
+        return transaction {
+
+            UsersTable.update(
+                {
+                    UsersTable.correo eq correo
+                }
+            ) {
+
+                it[password] = nuevaPassword
+            } > 0
+        }
+    }
 }
