@@ -4,6 +4,7 @@ import com.coreai.iality.config.DatabaseFactory
 import com.coreai.iality.routes.reminderRoutes
 import com.coreai.iality.routes.userRoutes
 import com.coreai.iality.routes.emergencyContactRoutes
+
 import com.coreai.iality.routes.passwordResetRoutes
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

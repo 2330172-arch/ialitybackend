@@ -29,6 +29,8 @@ dependencies {
     implementation(ktorLibs.server.cors)
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.statusPages)
+    implementation(ktorLibs.client.cio)
+    implementation(ktorLibs.client.contentNegotiation)
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
@@ -39,4 +41,7 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
+
+    implementation(ktorLibs.client.core)
+    implementation(ktorLibs.client.cio)
 }

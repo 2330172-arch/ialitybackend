@@ -10,6 +10,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import com.coreai.iality.service.EmailService
 
 fun Route.passwordResetRoutes() {
 
@@ -18,6 +19,7 @@ fun Route.passwordResetRoutes() {
 
     val userRepository =
         UserRepository()
+    val emailService = EmailService()
 
 
     // =========================================
@@ -49,15 +51,14 @@ fun Route.passwordResetRoutes() {
                 request.correo
             )
 
-        // TEMPORAL:
-        // Después este código se enviará por correo.
+        emailService.enviarCodigo(
+            request.correo,
+            codigo
+        )
+
         call.respond(
             HttpStatusCode.OK,
-            mapOf(
-                "mensaje" to
-                        "Código generado correctamente",
-                "codigo" to codigo
-            )
+            "Código enviado al correo"
         )
     }
 
